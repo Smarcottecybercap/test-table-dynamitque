@@ -1,0 +1,122 @@
+const sourceSheetName = 'DATA';
+const destSheetName = 'TimeData';
+const scriptProp = PropertiesService.getScriptProperties();
+
+function initialSetup() {
+  const activeSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  scriptProp.setProperty('sourceKey', activeSpreadsheet.getId());
+}
+
+function doPost(e) {
+  try {
+    const sourceSheetName = 'DATA';
+    const destSheetName = 'TimeData';
+    const scriptProp = PropertiesService.getScriptProperties();
+    
+    // Open the source and destination spreadsheets
+    const sourceDoc = SpreadsheetApp.openById(scriptProp.getProperty('sourceKey'));
+    const sourceSheet = sourceDoc.getSheetByName(sourceSheetName);
+    const destDoc = SpreadsheetApp.openById(scriptProp.getProperty('sourceKey'));
+    const destSheet = destDoc.getSheetByName(destSheetName);
+
+  
+
+      // Extract periodCountMax from request parameters for TimeData
+      const periodCountMax = e.parameter.periodCountMax;
+
+      // Initialize arrays to store start and end times
+      const startTimeArray = [];
+      const endTimeArray = [];
+
+            // Extract time values for each period and push to arrays
+      for (let periodCount = 1; periodCount <= (periodCountMax - 1); periodCount++) {
+        const startTime = e.parameter[`start_time${periodCount}`];
+        const endTime = e.parameter[`end_time${periodCount}`];
+        startTimeArray.push(startTime);
+        endTimeArray.push(endTime);
+
+      }
+
+      // Fetch input values from the request parameters for common data
+      const region = e.parameter.region;
+      const centerName = e.parameter.center_name;
+      const school = e.parameter.school;
+      const cybercapCode = e.parameter.cybercap_code;
+      const streetNumber = e.parameter.street_number;
+      const cityName = e.parameter.city_name;
+      const postalCode = e.parameter.postal_code;
+      const name = e.parameter.name;
+      const fonction = e.parameter.fonction;
+      const courriel = e.parameter.courriel;
+      const primaryCell = e.parameter.primary_cell;
+      const secondaryCell = e.parameter.secondary_cell;
+
+          const SeanceInformationCountMax = 3;
+
+            const seanceArray = [];
+            const numerodegroupeArray = []; 
+            const nombredelevesArray = []; 
+            const niveauArray = [];
+            const localArray = [];
+            const dateArray = [];
+            const periodeArray = [];
+            const disponibiliteArray = [];
+
+            // Extract data from the request parameters for dataseance
+            for (let seanceCount = 1; seanceCount <= SeanceInformationCountMax; seanceCount++) {
+              const seance = e.parameter[`seance1-${seanceCount}`];
+              const numerodegroupe = e.parameter[`numerodegroupe1-${seanceCount}`];
+              const nombredeleves = e.parameter[`nombredeleves1-${seanceCount}`];
+              const niveau = e.parameter[`niveau1-${seanceCount}`];
+              const local = e.parameter[`local1-${seanceCount}`];
+              const date = e.parameter[`date1-${seanceCount}`];
+              const periode = e.parameter[`periode1-${seanceCount}`];
+              const disponibilite = e.parameter[`disponibilite1-${seanceCount}`];
+                  
+              seanceArray.push(seance);
+              numerodegroupeArray.push(numerodegroupe);
+              nombredelevesArray.push(nombredeleves);
+              niveauArray.push(niveau);
+              localArray.push(local);
+              dateArray.push(date);
+              periodeArray.push(periode);
+              disponibiliteArray.push(disponibilite);
+            }
+
+                        
+ // Append commonData to the DATA sheet 3 times starting from column A
+for (let i = 0; i < 3; i++) {
+  const commonData = [region, centerName, school, cybercapCode, streetNumber, cityName, postalCode, name, fonction, courriel, primaryCell, secondaryCell];
+  const rowIndex = sourceSheet.getLastRow() + 1; // Get the next available row
+  sourceSheet.getRange(rowIndex, 1, 1, commonData.length).setValues([commonData]); // Set commonData values in a single row
+
+  // Append dataseanceData starting from column M
+  const dataseanceData = [seanceArray[i], numerodegroupeArray[i], nombredelevesArray[i], niveauArray[i], localArray[i], dateArray[i], periodeArray[i]];
+  const startColumnIndex = 13; // Column M
+  sourceSheet.getRange(rowIndex, startColumnIndex, 1, dataseanceData.length).setValues([dataseanceData]); // Set dataseanceData values in a single row
+
+  for (let periodCount = 1; periodCount <= (periodCountMax - 1); periodCount++) {
+    // Check if periodeArray[i] matches the current periode
+    if (periodeArray[i] === `Période ${periodCount}`) {
+      // Append newRow starting from column S (column 19)
+      const newRow = [periodeArray[i], startTimeArray[periodCount - 1], endTimeArray[periodCount - 1]]; // Using periodeArray[i] instead of hard-coded value
+      const startColumnIndexT = 19; // Column S
+      sourceSheet.getRange(rowIndex, startColumnIndexT, 1, newRow.length).setValues([newRow]); // Set newRow values in a single row
+    }
+  }
+}
+    
+
+
+      // Return success response with a redirection URL
+      return ContentService
+        .createTextOutput('<script>window.location = "success.html";</script>')
+        .setMimeType(ContentService.MimeType.HTML);
+    } catch (error) {
+      // Return error response with a redirection URL
+      return ContentService
+        .createTextOutput('<script>window.location = "error.html";</script>')
+        .setMimeType(ContentService.MimeType.HTML);
+  }
+}
+
